@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+{% load product_tags %}
+
+{% block title %}{{ category.name }} - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="my-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'products:product_list' %}">Anasayfa</a></li>
+            <li class="breadcrumb-item active">{{ category.name }}</li>
+        </ol>
+    </nav>
+
+    <!-- Kategori Başlığı -->
+    <div class="category-header mb-4">
+        <h1 class="category-title">{{ category.name }}</h1>
+        {% if category.description %}
+        <p class="category-description text-muted">{{ category.description }}</p>
+        {% endif %}
+    </div>
+
+    {% if products_count > 0 %}
+        <!-- Ürün Listesi -->
+        <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-4">
+            {% for product in products %}
+            <div class="col">
+                <div class="product-card">
+                    <div class="product-image">
+                        {% if product.images.exists %}
+                        <img src="{{ product.images.first.get_image }}" alt="{{ product.name }}">
+                        {% endif %}
+                        {% if user.is_authenticated %}
+                        <div class="product-favorite" data-product-id="{{ product.id }}">
+                            <i class="{% if product|is_favorite_of:user %}fas{% else %}far{% endif %} fa-heart"></i>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="product-info">
+                        <div class="product-category">{{ product.category.name }}</div>
+                        <h2 class="product-title">{{ product.name }}</h2>
+                        <div class="product-price">{{ product.price }} TL</div>
+                        <div class="product-action">
+                            <a href="{% url 'products:product_detail' product.slug %}" class="btn btn-primary btn-product">
+                                <i class="fas fa-eye"></i>
+                                <span>İncele</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Sayfalama -->
+        {% if products.has_other_pages %}
+        <nav class="mt-4">
+            <ul class="pagination justify-content-center">
+                {% if products.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ products.previous_page_number }}">Önceki</a>
+                </li>
+                {% endif %}
+
+                {% for num in products.paginator.page_range %}
+                <li class="page-item {% if products.number == num %}active{% endif %}">
+                    <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                </li>
+                {% endfor %}
+
+                {% if products.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ products.next_page_number }}">Sonraki</a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+    {% else %}
+        <!-- Ürün Bulunamadı -->
+        <div class="text-center py-5">
+            <div class="empty-category">
+                <i class="fas fa-box-open fa-3x mb-3 text-muted"></i>
+                <h3>Bu kategoride henüz ürün bulunmuyor</h3>
+                <p class="text-muted mb-4">{{ category.name }} kategorisinde şu an için ürün bulunmamaktadır.</p>
+                <a href="{% url 'products:product_list' %}" class="btn btn-primary">
+                    <i class="fas fa-arrow-left me-2"></i>
+                    Tüm Ürünlere Dön
+                </a>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %} 

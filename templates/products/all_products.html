@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Kompakt Filtre Bölümü -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center filter-bar">
+                <div class="d-flex align-items-center">
+                    <span class="me-3"><i class="fas fa-filter me-2"></i>Filtrele:</span>
+                    
+                    <!-- Kategori Filtresi -->
+                    <form method="get" id="category-form" class="me-3">
+                        <select name="category" class="form-select form-select-sm" onchange="this.form.submit()">
+                            <option value="">Tüm Kategoriler</option>
+                            {% for category in categories %}
+                                <option value="{{ category.slug }}" {% if current_category == category.slug %}selected{% endif %}>
+                                    {{ category.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </form>
+
+                    <!-- Sıralama -->
+                    <form method="get" id="sort-form">
+                        {% if current_category %}
+                            <input type="hidden" name="category" value="{{ current_category }}">
+                        {% endif %}
+                        <select name="sort" class="form-select form-select-sm" onchange="this.form.submit()">
+                            <option value="-created_at" {% if current_sort == '-created_at' %}selected{% endif %}>En Yeni</option>
+                            <option value="price" {% if current_sort == 'price' %}selected{% endif %}>Fiyat Artan</option>
+                            <option value="-price" {% if current_sort == '-price' %}selected{% endif %}>Fiyat Azalan</option>
+                        </select>
+                    </form>
+                </div>
+                
+                <div class="text-muted">
+                    {{ products.paginator.count }} ürün bulundu
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row row-cols-1 row-cols-md-4 g-4">
+        {% for product in products %}
+        <div class="col product-item" data-category="{{ product.category.slug }}">
+            <div class="product-card" data-product-id="{{ product.id }}">
+                <div class="product-image">
+                    {% if product.images.exists %}
+                    <img src="{{ product.images.first.get_image }}" alt="{{ product.name }}">
+                    {% endif %}
+                    <div class="product-favorite" 
+                         role="button" 
+                         title="Favorilere ekle" 
+                         data-requires-auth="{% if not user.is_authenticated %}true{% else %}false{% endif %}"
+                         {% if not user.is_authenticated %}onclick="window.location.href='{% url 'accounts:login' %}'"{% endif %}>
+                        <i class="{% if user.is_authenticated and user in product.favorited_users %}fas{% else %}far{% endif %} fa-heart"></i>
+                    </div>
+                </div>
+                <div class="product-info">
+                    <div class="product-category">{{ product.category.name }}</div>
+                    <h2 class="product-title">{{ product.name }}</h2>
+                    <div class="product-price">{{ product.price }} TL</div>
+                    <div class="product-action">
+                        <a href="{% url 'products:product_detail' product.slug %}" 
+                           class="btn btn-primary btn-product">
+                            <i class="fas fa-eye"></i>
+                            <span>İncele</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="text-center py-5">
+                <i class="fas fa-box-open fa-3x mb-3 text-muted"></i>
+                <p class="text-muted">Ürün bulunamadı.</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Sayfalama -->
+    {% if products.has_other_pages %}
+    <nav class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if products.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ products.previous_page_number }}{% if current_sort %}&sort={{ current_sort }}{% endif %}">
+                    <i class="fas fa-chevron-left"></i>
+                </a>
+            </li>
+            {% endif %}
+            
+            {% for num in products.paginator.page_range %}
+            <li class="page-item {% if products.number == num %}active{% endif %}">
+                <a class="page-link" href="?page={{ num }}{% if current_sort %}&sort={{ current_sort }}{% endif %}">
+                    {{ num }}
+                </a>
+            </li>
+            {% endfor %}
+            
+            {% if products.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ products.next_page_number }}{% if current_sort %}&sort={{ current_sort }}{% endif %}">
+                    <i class="fas fa-chevron-right"></i>
+                </a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+
+<style>
+.filter-bar {
+    background-color: #f8f9fa;
+    padding: 10px 15px;
+    border-radius: 5px;
+}
+.filter-bar select {
+    width: auto;
+    margin-right: 10px;
+}
+</style>
+{% endblock %}

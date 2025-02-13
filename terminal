@@ -1,0 +1,25 @@
+python -m venv venv
+venv\Scripts\activate 
+pip install django 
+pip install Pillow
+django-admin startproject config . 
+python manage.py startapp accounts
+python manage.py startapp products
+python manage.py startapp orders
+python manage.py makemigrations
+python manage.py migrate
+python manage.py createsuperuser 
+mkdir static
+mkdir media 
+mkdir templates
+mkdir templates/accounts
+mkdir templates/products
+mkdir templates/orders
+mkdir orders/templatetags
+type nul > orders\templatetags\__init__.py
+mkdir static/css
+mkdir static/js
+mkdir static/images
+touch static/css/main.css
+python manage.py collectstatic
+python manage.py runserver 

@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Adresi Sil{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h3>Adresi Sil</h3>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="alert alert-danger">
+                            <p>
+                                <strong>{{ address.title }}</strong> adlı adresi silmek istediğinizden emin misiniz?
+                            </p>
+                            <p>
+                                Bu işlem geri alınamaz.
+                            </p>
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-danger">
+                                Evet, Sil
+                            </button>
+                            <a href="{% url 'accounts:profile' %}" class="btn btn-secondary ms-2">
+                                İptal
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

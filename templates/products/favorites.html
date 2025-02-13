@@ -1,0 +1,130 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Favorilerim - {{ block.super }}{% endblock %}
+
+{% block content %}
+{% csrf_token %}
+<div class="container my-4">
+    <h1 class="mb-4">Favorilerim</h1>
+    
+    {% if favorites %}
+    <div class="row row-cols-2 row-cols-md-4 g-4">
+        {% for favorite in favorites %}
+        <div class="col">
+            <div class="product-card">
+                <div class="product-image">
+                    {% if favorite.product.images.exists %}
+                    <img src="{{ favorite.product.images.first.get_image }}" alt="{{ favorite.product.name }}">
+                    {% endif %}
+                    <div class="product-favorite" 
+                         role="button" 
+                         title="Favorilerden kaldır"
+                         data-product-id="{{ favorite.product.id }}">
+                        <i class="fas fa-heart"></i>
+                    </div>
+                </div>
+                <div class="product-info">
+                    <div class="product-category">{{ favorite.product.category.name }}</div>
+                    <h2 class="product-title">{{ favorite.product.name }}</h2>
+                    <div class="product-price">{{ favorite.product.price }} TL</div>
+                    <div class="product-action">
+                        <a href="{% url 'products:product_detail' favorite.product.slug %}" 
+                           class="btn btn-primary btn-product">
+                            <i class="fas fa-eye"></i>
+                            <span>İncele</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center py-5">
+        <i class="far fa-heart fa-3x mb-3 text-muted"></i>
+        <h3 class="text-muted">Henüz favoriniz yok</h3>
+        <p class="text-muted mb-4">Beğendiğiniz ürünleri favorilerinize ekleyebilirsiniz.</p>
+        <a href="{% url 'products:product_list' %}" class="btn btn-primary">
+            <i class="fas fa-shopping-bag me-2"></i>
+            Alışverişe Başla
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Favoriden kaldırma için JavaScript -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const favoriteButtons = document.querySelectorAll('.product-favorite');
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    
+    favoriteButtons.forEach(favoriteBtn => {
+        favoriteBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const productCard = this.closest('.product-card');
+            const productId = this.dataset.productId;
+            const productName = productCard.querySelector('.product-title').textContent;
+            
+            fetch(`/favorite/${productId}/`, {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken,
+                },
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.status === 'removed') {
+                    // Ürün kartını animasyonlu bir şekilde kaldır
+                    const col = productCard.closest('.col');
+                    col.style.transition = 'all 0.3s ease';
+                    col.style.opacity = '0';
+                    col.style.transform = 'scale(0.9)';
+                    
+                    setTimeout(() => {
+                        col.remove();
+                        
+                        // Eğer son ürün de kaldırıldıysa sayfayı yenile
+                        if (document.querySelectorAll('.product-card').length === 0) {
+                            location.reload();
+                        }
+                    }, 300);
+                    
+                    Toastify({
+                        text: `${productName} favorilerden kaldırıldı`,
+                        duration: 3000,
+                        gravity: "bottom",
+                        position: "right",
+                        style: {
+                            background: "#EF4444",
+                        },
+                    }).showToast();
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                
+                Toastify({
+                    text: "Bir hata oluştu!",
+                    duration: 3000,
+                    gravity: "bottom",
+                    position: "right",
+                    style: {
+                        background: "#EF4444",
+                    },
+                }).showToast();
+            });
+        });
+    });
+});
+</script>
+{% endblock %} 

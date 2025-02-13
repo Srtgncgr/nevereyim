@@ -1,0 +1,488 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load account_tags %}
+
+{% block title %}Hesabım - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="row">
+        <!-- Sol Menü -->
+        <div class="col-lg-3">
+            <div class="profile-sidebar">
+                <div class="profile-header">
+                    <div class="profile-avatar">
+                        <i class="fas fa-user-circle"></i>
+                    </div>
+                    <h4>{{ user.get_full_name|default:user.username }}</h4>
+                    <p class="text-muted">{{ user.email }}</p>
+                </div>
+                
+                <div class="profile-menu">
+                    <a href="#orders" class="profile-menu-item active" data-bs-toggle="tab">
+                        <i class="fas fa-box"></i>
+                        <span>Siparişlerim</span>
+                    </a>
+                    <a href="#addresses" class="profile-menu-item" data-bs-toggle="tab">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span>Adreslerim</span>
+                    </a>
+                    <a href="#favorites" class="profile-menu-item" data-bs-toggle="tab">
+                        <i class="fas fa-heart"></i>
+                        <span>Favorilerim</span>
+                    </a>
+                    <a href="#settings" class="profile-menu-item" data-bs-toggle="tab">
+                        <i class="fas fa-cog"></i>
+                        <span>Hesap Ayarları</span>
+                    </a>
+                    <a href="{% url 'accounts:logout' %}" class="profile-menu-item text-danger">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>Çıkış Yap</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sağ İçerik -->
+        <div class="col-lg-9">
+            <div class="tab-content">
+                <!-- Siparişlerim -->
+                <div class="tab-pane fade show active" id="orders">
+                    <div class="content-header">
+                        <h3>Siparişlerim</h3>
+                    </div>
+                    
+                    {% if orders %}
+                        {% for order in orders %}
+                        <div class="order-card">
+                            <div class="order-header">
+                                <div>
+                                    <h5>Sipariş #{{ order.id }}</h5>
+                                    <span class="text-muted">{{ order.created_at|date:"d.m.Y H:i" }}</span>
+                                </div>
+                                <div class="order-status">
+                                    <span class="badge bg-{{ order.status|status_color }}">
+                                        {{ order.get_status_display }}
+                                    </span>
+                                </div>
+                            </div>
+                            
+                            <div class="order-items">
+                                {% for item in order.items.all %}
+                                <div class="order-item">
+                                    {% if item.product.images.exists %}
+                                    <img src="{{ item.product.images.first.get_image }}" alt="{{ item.product.name }}">
+                                    {% endif %}
+                                    <div class="order-item-details">
+                                        <h6>{{ item.product.name }}</h6>
+                                        <p class="text-muted">{{ item.quantity }} adet x {{ item.price }} TL</p>
+                                    </div>
+                                    <div class="order-item-total">
+                                        {{ item.quantity|multiply:item.price }} TL
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            
+                            <div class="order-footer">
+                                <div class="order-total">
+                                    <span>Toplam:</span>
+                                    <strong>{{ order.total_price }} TL</strong>
+                                </div>
+                                <div class="order-actions">
+                                    <button class="btn btn-outline-primary btn-sm">
+                                        <i class="fas fa-eye"></i>
+                                        Detaylar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-box-open fa-3x mb-3 text-muted"></i>
+                            <h5>Henüz siparişiniz bulunmuyor</h5>
+                            <p class="text-muted">Alışverişe başlamak için aşağıdaki butona tıklayabilirsiniz.</p>
+                            <a href="{% url 'products:product_list' %}" class="btn btn-primary">
+                                <i class="fas fa-shopping-bag me-2"></i>
+                                Alışverişe Başla
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Adreslerim -->
+                <div class="tab-pane fade" id="addresses">
+                    <div class="content-header d-flex justify-content-between align-items-center">
+                        <h3>Adreslerim</h3>
+                        <a href="{% url 'accounts:add_address' %}" class="btn btn-primary">
+                            <i class="fas fa-plus me-2"></i>
+                            Yeni Adres Ekle
+                        </a>
+                    </div>
+                    
+                    <div class="row">
+                        {% for address in user.addresses.all %}
+                        <div class="col-md-6 mb-4">
+                            <div class="address-card">
+                                <div class="address-header">
+                                    <h5>{{ address.title }}</h5>
+                                    {% if address.is_default %}
+                                    <span class="badge bg-primary">Varsayılan</span>
+                                    {% endif %}
+                                </div>
+                                <div class="address-content">
+                                    <p><strong>{{ address.full_name }}</strong></p>
+                                    <p>{{ address.phone }}</p>
+                                    <p>{{ address.full_address }}</p>
+                                </div>
+                                <div class="address-actions">
+                                    <a href="{% url 'accounts:edit_address' address.id %}" class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-edit"></i>
+                                        Düzenle
+                                    </a>
+                                    <a href="{% url 'accounts:delete_address' address.id %}" class="btn btn-sm btn-outline-danger">
+                                        <i class="fas fa-trash"></i>
+                                        Sil
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="col-12">
+                            <div class="text-center py-5">
+                                <i class="fas fa-map-marker-alt fa-3x mb-3 text-muted"></i>
+                                <h5>Henüz adres eklemediniz</h5>
+                                <p class="text-muted">Yeni adres eklemek için yukarıdaki butonu kullanabilirsiniz.</p>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Favorilerim -->
+                <div class="tab-pane fade" id="favorites">
+                    <div class="content-header">
+                        <h3>Favorilerim</h3>
+                    </div>
+                    
+                    <div class="row row-cols-2 row-cols-md-3 g-4">
+                        {% for favorite in user.favorites.all %}
+                        <div class="col">
+                            <div class="product-card">
+                                <div class="product-image">
+                                    {% if favorite.product.images.exists %}
+                                    <img src="{{ favorite.product.images.first.get_image }}" alt="{{ favorite.product.name }}">
+                                    {% endif %}
+                                    <div class="product-favorite" 
+                                         role="button" 
+                                         title="Favorilerden kaldır"
+                                         data-product-id="{{ favorite.product.id }}">
+                                        <i class="fas fa-heart"></i>
+                                    </div>
+                                </div>
+                                <div class="product-info">
+                                    <div class="product-category">{{ favorite.product.category.name }}</div>
+                                    <h2 class="product-title">{{ favorite.product.name }}</h2>
+                                    <div class="product-price">{{ favorite.product.price }} TL</div>
+                                    <div class="product-action">
+                                        <a href="{% url 'products:product_detail' favorite.product.slug %}" 
+                                           class="btn btn-primary btn-product">
+                                            <i class="fas fa-eye"></i>
+                                            <span>İncele</span>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="col-12">
+                            <div class="text-center py-5">
+                                <i class="far fa-heart fa-3x mb-3 text-muted"></i>
+                                <h5>Henüz favoriniz yok</h5>
+                                <p class="text-muted">Beğendiğiniz ürünleri favorilerinize ekleyebilirsiniz.</p>
+                                <a href="{% url 'products:product_list' %}" class="btn btn-primary">
+                                    <i class="fas fa-shopping-bag me-2"></i>
+                                    Alışverişe Başla
+                                </a>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Hesap Ayarları -->
+                <div class="tab-pane fade" id="settings">
+                    <div class="content-header">
+                        <h3>Hesap Ayarları</h3>
+                    </div>
+                    
+                    {% if messages %}
+                    <div class="container my-3">
+                        {% for message in messages %}
+                            <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5>Kullanıcı Bilgileri</h5>
+                            <form method="post" action="{% url 'accounts:update_user_info' %}" class="needs-validation" novalidate>
+                                {% csrf_token %}
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Kullanıcı Adı</label>
+                                    <input type="text" name="username" class="form-control" 
+                                           value="{{ user.username }}" 
+                                           placeholder="Kullanıcı adınızı girin">
+                                    {% if info_form.username.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in info_form.username.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                    <small class="form-text text-muted">
+                                        Kullanıcı adınız giriş yaparken kullanılacaktır. En az 3 karakter olmalıdır.
+                                    </small>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Ad</label>
+                                        <input type="text" name="first_name" class="form-control" 
+                                               value="{{ user.first_name }}" 
+                                               placeholder="Adınızı girin">
+                                        {% if info_form.first_name.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {% for error in info_form.first_name.errors %}
+                                                    {{ error }}
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Soyad</label>
+                                        <input type="text" name="last_name" class="form-control" 
+                                               value="{{ user.last_name }}" 
+                                               placeholder="Soyadınızı girin">
+                                        {% if info_form.last_name.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {% for error in info_form.last_name.errors %}
+                                                    {{ error }}
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">E-posta</label>
+                                    <input type="email" name="email" class="form-control" 
+                                           value="{{ user.email }}" 
+                                           placeholder="E-posta adresinizi girin">
+                                    {% if info_form.email.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in info_form.email.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save me-2"></i>
+                                    Kullanıcı Bilgilerini Kaydet
+                                </button>
+                            </form>
+                        </div>
+
+                        <div class="col-md-6">
+                            <h5>Şifre Değiştir</h5>
+                            <form method="post" action="{% url 'accounts:change_password' %}" class="needs-validation" novalidate>
+                                {% csrf_token %}
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Mevcut Şifre</label>
+                                    <input type="password" name="current_password" class="form-control" 
+                                           placeholder="Mevcut şifrenizi girin">
+                                    {% if password_form.current_password.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in password_form.current_password.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Yeni Şifre</label>
+                                    <input type="password" name="new_password" class="form-control" 
+                                           placeholder="Yeni şifrenizi girin">
+                                    {% if password_form.new_password.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in password_form.new_password.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="mb-4">
+                                    <label class="form-label">Yeni Şifre (Tekrar)</label>
+                                    <input type="password" name="confirm_password" class="form-control" 
+                                           placeholder="Yeni şifreyi tekrar girin">
+                                    {% if password_form.confirm_password.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in password_form.confirm_password.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-key me-2"></i>
+                                    Şifreyi Değiştir
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+    // Güvenli event binding fonksiyonu
+    function addSafeEventListener(element, eventType, handler) {
+        if (element && typeof element.addEventListener === 'function') {
+            element.addEventListener(eventType, handler);
+        }
+    }
+
+    // Favori toggle işlemi
+    function toggleFavorite(event) {
+        // Tüm varsayılan event davranışlarını engelle
+        event.preventDefault();
+        event.stopPropagation();
+
+        // Event hedefini güvenli bir şekilde al
+        const button = event.currentTarget;
+        
+        // product-id'yi güvenli bir şekilde al
+        const productId = button.getAttribute('data-product-id');
+        console.log('Clicked product ID:', productId);
+
+        // Geçersiz product ID kontrolü
+        if (!productId) {
+            console.error('Product ID not found');
+            alert('Ürün ID\'si bulunamadı. Lütfen sayfayı yenileyin.');
+            return;
+        }
+
+        // En yakın .col elemanını bul
+        const favoriteCol = button.closest('.col');
+        if (!favoriteCol) {
+            console.error('Favorite column not found');
+            return;
+        }
+
+        // CSRF token'ını al
+        const csrfToken = getCookie('csrftoken');
+        if (!csrfToken) {
+            console.error('CSRF token not found');
+            alert('CSRF token bulunamadı. Lütfen sayfayı yenileyin.');
+            return;
+        }
+
+        // Favori toggle için AJAX isteği
+        fetch(`/products/favorite/${productId}/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            credentials: 'same-origin'
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Favori işlemi başarısız');
+            }
+            return response.json();
+        })
+        .then(data => {
+            // Buton durumunu güncelle
+            if (data.is_favorite) {
+                button.classList.add('text-danger');
+                button.innerHTML = '<i class="fas fa-heart"></i>';
+            } else {
+                button.classList.remove('text-danger');
+                button.innerHTML = '<i class="far fa-heart"></i>';
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Favori işlemi sırasında bir hata oluştu.');
+        });
+    }
+
+    // Favori butonlarını güvenli bir şekilde seç ve event listener ekle
+    function initFavoriteToggles() {
+        const favoritesTab = document.getElementById('favorites');
+        if (!favoritesTab) {
+            console.error('Favorites tab not found');
+            return;
+        }
+
+        const favoriteButtons = favoritesTab.querySelectorAll('.product-favorite');
+        console.log('Total favorite buttons:', favoriteButtons.length);
+
+        favoriteButtons.forEach(function(button) {
+            // Önceki event listener'ları temizle
+            button.removeEventListener('click', toggleFavorite);
+            
+            // Yeni event listener ekle
+            addSafeEventListener(button, 'click', toggleFavorite);
+        });
+    }
+
+    // CSRF token almak için yardımcı fonksiyon
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    // Sayfa yüklendiğinde ve tab değişimlerinde çalıştır
+    document.addEventListener('DOMContentLoaded', initFavoriteToggles);
+    
+    // Bootstrap tab değişim olayını dinle
+    const tabElements = document.querySelectorAll('a[data-bs-toggle="tab"]');
+    tabElements.forEach(function(tabElement) {
+        tabElement.addEventListener('shown.bs.tab', function(event) {
+            if (event.target.getAttribute('href') === '#favorites') {
+                initFavoriteToggles();
+            }
+        });
+    });
+})();
+</script>
+{% endblock %}

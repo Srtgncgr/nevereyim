@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% load custom_filters %}
+
+{% block title %}Sipariş Geçmişi - {{ block.super }}{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">Sipariş Geçmişi</h1>
+
+{% if orders %}
+    <div class="row">
+        {% for order in orders %}
+        <div class="col-12 mb-4">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Sipariş #{{ order.id }}</h5>
+                    <span class="badge bg-{{ order.status|status_color }}">{{ order.get_status_display }}</span>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Tarih:</strong> {{ order.created_at|date:"d.m.Y H:i" }}</p>
+                            <p><strong>Toplam:</strong> {{ order.total_price }} TL</p>
+                            <p><strong>Teslimat Adresi:</strong><br>{{ order.shipping_address }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Sipariş Detayı</h6>
+                            <ul class="list-unstyled">
+                                {% for item in order.items.all %}
+                                <li>{{ item.product.name }} x {{ item.quantity }} = {{ item.price|multiply:item.quantity }} TL</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="text-center">
+        <p>Henüz siparişiniz bulunmuyor.</p>
+        <a href="{% url 'products:product_list' %}" class="btn btn-primary">Alışverişe Başla</a>
+    </div>
+{% endif %}
+{% endblock %} 

@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Nevereyim{% endblock %}</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- Custom CSS -->
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/main.css' %}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+</head>
+<body data-user-authenticated="{{ user.is_authenticated|yesno:'true,false' }}">
+    <!-- Navbar -->
+    <div class="top-bar">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <i class="fas fa-truck me-2"></i>100 TL Üzeri Kargo Bedava
+                </div>
+                <div class="col-md-6 text-end">
+                    <i class="fas fa-headset me-2"></i>7/24 Müşteri Hizmetleri
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <nav class="navbar navbar-expand-lg main-navbar">
+        <div class="container">
+            <a class="navbar-brand" href="{% url 'products:product_list' %}">
+                <div class="brand-logo">
+                    <i class="fas fa-shopping-bag"></i>
+                </div>
+                <span class="brand-text">Nevereyim</span>
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <div class="nav-categories-wrapper">
+                    <a href="#" class="nav-categories-btn">
+                        <i class="fas fa-bars"></i>
+                        <span>Kategoriler</span>
+                    </a>
+                    <div class="nav-categories-menu">
+                        <a href="{% url 'products:category_products' 'giyim' %}" class="category-item">
+                            <i class="fas fa-tshirt"></i>
+                            <span>Giyim</span>
+                        </a>
+            
+                        <a href="{% url 'products:category_products' 'petshop' %}" class="category-item">
+                            <i class="fas fa-paw"></i>
+                            <span>Pet Shop</span>
+                        </a>
+                        <a href="{% url 'products:category_products' 'saglik' %}" class="category-item">
+                            <i class="fas fa-heartbeat"></i>
+                            <span>Sağlık</span>
+                        </a>
+                        <a href="{% url 'products:category_products' 'supermarket' %}" class="category-item">
+                            <i class="fas fa-shopping-basket"></i>
+                            <span>Süpermarket</span>
+                        </a>
+                        <a href="{% url 'products:category_products' 'iletisim' %}" class="category-item">
+                            <i class="fas fa-mobile-alt"></i>
+                            <span>İletişim</span>
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="search-container">
+                    <form class="search-form" id="navbar-search-form" action="{% url 'products:search_results' %}" method="GET">
+                        <i class="fas fa-search"></i>
+                        <input type="search" id="navbar-search-input" name="search" class="form-control" placeholder="Ürün, kategori veya marka ara..." required>
+                    </form>
+                </div>
+                
+                <div class="nav-icons ms-auto">
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'accounts:profile' %}" class="nav-icon-link">
+                            <i class="fas fa-user"></i>
+                            <span>Hesabım</span>
+                        </a>
+                        <a href="{% url 'products:favorites' %}" class="nav-icon-link">
+                            <i class="fas fa-heart"></i>
+                            <span>Favoriler</span>
+                        </a>
+                        <a href="{% url 'orders:cart_detail' %}" class="nav-icon-link">
+                            <div class="cart-icon">
+                                <i class="fas fa-shopping-cart"></i>
+                            </div>
+                            <span>Sepetim</span>
+                        </a>
+                    {% else %}
+                        <a href="{% url 'accounts:login' %}" class="nav-icon-link">
+                            <i class="fas fa-sign-in-alt"></i>
+                            <span>Giriş Yap</span>
+                        </a>
+                        <a href="{% url 'accounts:register' %}" class="nav-icon-link">
+                            <i class="fas fa-user-plus"></i>
+                            <span>Kayıt Ol</span>
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Navbar'dan sonra -->
+    <div class="submenu">
+        <div class="container">
+            <ul class="submenu-list">
+                <li class="submenu-item">
+                    <a href="{% url 'products:category_products' 'giyim' %}" class="submenu-link">
+                        <i class="fas fa-tshirt"></i>
+                        <span>Giyim</span>
+                    </a>
+                </li>
+                <li class="submenu-item">
+                    <a href="{% url 'products:category_products' 'elektronik' %}" class="submenu-link">
+                        <i class="fas fa-mobile-alt"></i>
+                        <span>Elektronik</span>
+                    </a>
+                </li>
+                <li class="submenu-item">
+                    <a href="{% url 'products:category_products' 'ev-yasam' %}" class="submenu-link">
+                        <i class="fas fa-couch"></i>
+                        <span>Ev & Yaşam</span>
+                    </a>
+                </li>
+                <li class="submenu-item">
+                    <a href="{% url 'products:category_products' 'spor' %}" class="submenu-link">
+                        <i class="fas fa-futbol"></i>
+                        <span>Spor</span>
+                    </a>
+                </li>
+                <li class="submenu-item">
+                    <a href="{% url 'products:category_products' 'kitap' %}" class="submenu-link">
+                        <i class="fas fa-book"></i>
+                        <span>Kitap</span>
+                    </a>
+                </li>
+                <li class="submenu-item">
+                    <a href="{% url 'products:category_products' 'oyun' %}" class="submenu-link">
+                        <i class="fas fa-gamepad"></i>
+                        <span>Oyun</span>
+                    </a>
+                </li>
+                <li class="submenu-item">
+                    <a href="{% url 'products:category_products' 'anne-bebek' %}" class="submenu-link">
+                        <i class="fas fa-baby"></i>
+                        <span>Anne & Bebek</span>
+                    </a>
+                </li>
+                <li class="submenu-item">
+                    <a href="{% url 'products:category_products' 'otomotiv' %}" class="submenu-link">
+                        <i class="fas fa-car"></i>
+                        <span>Otomotiv</span>
+                    </a>
+                </li>
+                <li class="submenu-item">
+                    <a href="{% url 'products:category_products' 'muzik' %}" class="submenu-link">
+                        <i class="fas fa-guitar"></i>
+                        <span>Müzik</span>
+                    </a>
+                </li>
+                <li class="submenu-item">
+                    <a href="{% url 'products:category_products' 'hobi-sanat' %}" class="submenu-link">
+                        <i class="fas fa-paint-brush"></i>
+                        <span>Hobi & Sanat</span>
+                    </a>
+                </li>
+                <li class="submenu-item">
+                    <a href="{% url 'products:category_products' 'petshop' %}" class="submenu-link">
+                        <i class="fas fa-paw"></i>
+                        <span>Pet Shop</span>
+                    </a>
+                </li>
+                <li class="submenu-item">
+                    <a href="{% url 'products:category_products' 'hediye' %}" class="submenu-link">
+                        <i class="fas fa-gift"></i>
+                        <span>Hediye</span>
+                    </a>
+                </li>
+                <li class="submenu-item">
+                    <a href="{% url 'products:category_products' 'yapi-market' %}" class="submenu-link">
+                        <i class="fas fa-tools"></i>
+                        <span>Yapı Market</span>
+                    </a>
+                </li>
+                <li class="submenu-item">
+                    <a href="{% url 'products:category_products' 'fotograf' %}" class="submenu-link">
+                        <i class="fas fa-camera"></i>
+                        <span>Fotoğraf</span>
+                    </a>
+                </li>
+                <li class="submenu-item">
+                    <a href="{% url 'products:category_products' 'saglik' %}" class="submenu-link">
+                        <i class="fas fa-heartbeat"></i>
+                        <span>Sağlık</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Submenu'den sonra -->
+    <div class="promo-cards">
+        <div class="container">
+            <div class="row g-2">
+                <!-- İyi Fiyatlı Ürünler -->
+                <div class="col">
+                    <div class="promo-card">
+                        <div class="promo-icon">
+                            <i class="fas fa-bolt"></i>
+                        </div>
+                        <div class="promo-info">
+                            <h3>İyi Fiyatlı Ürünler</h3>
+                            <div class="promo-tag">
+                                <i class="fas fa-tag"></i>
+                                %50'ye varan indirim
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sen de Al -->
+                <div class="col">
+                    <div class="promo-card hot">
+                        <div class="promo-icon">
+                            <i class="fas fa-fire"></i>
+                        </div>
+                        <div class="promo-info">
+                            <h3>Sen de Al</h3>
+                            <div class="promo-tag">
+                                <i class="fas fa-chart-line"></i>
+                                Çok Satan
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Günün Fırsatları -->
+                <div class="col">
+                    <div class="promo-card deals">
+                        <div class="promo-icon">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="promo-info">
+                            <h3>Günün Fırsatları</h3>
+                            <div class="promo-tag">
+                                <i class="fas fa-stopwatch"></i>
+                                23:59:59
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- İndirim Kuponları -->
+                <div class="col">
+                    <div class="promo-card coupon">
+                        <div class="promo-icon">
+                            <i class="fas fa-ticket-alt"></i>
+                        </div>
+                        <div class="promo-info">
+                            <h3>İndirim Kuponları</h3>
+                            <div class="promo-tag">
+                                <i class="fas fa-gift"></i>
+                                3 Yeni Kupon
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Yeni Ürünler -->
+                <div class="col">
+                    <div class="promo-card new">
+                        <div class="promo-icon">
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <div class="promo-info">
+                            <h3>Yeni Ürünler</h3>
+                            <div class="promo-tag">
+                                <i class="fas fa-sparkles"></i>
+                                Yeni Geldi
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mesajlar -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} text-center">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- İçerik -->
+    <div class="container my-4">
+        {% block content %}
+        {% endblock %}
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <!-- Logo ve Sosyal Medya -->
+                <div class="footer-brand-section">
+                    <a href="/" class="footer-brand">
+                        <i class="fas fa-shopping-bag"></i>
+                        <span>Nevereyim</span>
+                    </a>
+                    <div class="footer-social">
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-facebook"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                    </div>
+                </div>
+
+                <!-- Linkler -->
+                <div class="footer-links-section">
+                    <div class="footer-links-group">
+                        <h6>Alışveriş</h6>
+                        <a href="#">Kategoriler</a>
+                        <a href="#">Kampanyalar</a>
+                        <a href="#">Markalar</a>
+                    </div>
+                    <div class="footer-links-group">
+                        <h6>Yardım</h6>
+                        <a href="#">Sıkça Sorulan Sorular</a>
+                        <a href="#">Kargo Takip</a>
+                        <a href="#">İade Koşulları</a>
+                    </div>
+                    <div class="footer-links-group">
+                        <h6>Kurumsal</h6>
+                        <a href="#">Hakkımızda</a>
+                        <a href="#">İletişim</a>
+                        <a href="#">Gizlilik Politikası</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <span> 2024 Nevereyim</span>
+                <div class="footer-cards">
+                    <i class="fab fa-cc-visa"></i>
+                    <i class="fab fa-cc-mastercard"></i>
+                    <i class="fab fa-cc-paypal"></i>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Kategori filtreleme için JavaScript kodu -->
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const categoryLinks = document.querySelectorAll('.category-link');
+        const productItems = document.querySelectorAll('.product-item');
+
+        categoryLinks.forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // Aktif kategori class'ını güncelle
+                categoryLinks.forEach(l => l.classList.remove('active'));
+                this.classList.add('active');
+                
+                const selectedCategory = this.dataset.category;
+                
+                // Ürünleri filtrele
+                productItems.forEach(item => {
+                    if (selectedCategory === 'all' || item.dataset.category === selectedCategory) {
+                        item.style.display = '';
+                        // Fade-in animasyonu
+                        item.style.opacity = '0';
+                        setTimeout(() => {
+                            item.style.opacity = '1';
+                        }, 50);
+                    } else {
+                        item.style.display = 'none';
+                    }
+                });
+            });
+        });
+    });
+    document.addEventListener('DOMContentLoaded', () => {
+    const favoriteIcons = document.querySelectorAll('.product-favorite');
+    
+    // Sayfa yüklendiğinde favori durumunu kontrol et
+    async function checkFavoriteStatus(productId, icon) {
+        try {
+            const response = await fetch(`/is-favorite/${productId}/`);
+            const data = await response.json();
+            
+            if (data.is_favorite) {
+                icon.classList.add('favorited');
+                const heartIcon = icon.querySelector('i');
+                heartIcon.classList.add('fa-solid');
+                heartIcon.classList.remove('fa-regular');
+            } else {
+                icon.classList.remove('favorited');
+                const heartIcon = icon.querySelector('i');
+                heartIcon.classList.remove('fa-solid');
+                heartIcon.classList.add('fa-regular');
+            }
+        } catch (error) {
+            console.error('Favori durumu kontrol hatası:', error);
+        }
+    }
+    
+    favoriteIcons.forEach(icon => {
+        const productCard = icon.closest('.product-card');
+        if (!productCard) return;
+        
+        const productId = productCard.getAttribute('data-product-id');
+        if (!productId) return;
+        
+        // Sayfa yüklendiğinde favori durumunu kontrol et
+        checkFavoriteStatus(productId, icon);
+    });
+
+    // Mevcut favori toggle kodu buraya gelecek
+    favoriteIcons.forEach(icon => {
+        icon.addEventListener('click', async (event) => {
+            event.preventDefault();
+            
+            const productCard = event.target.closest('.product-card');
+            if (!productCard) {
+                console.error('Product card not found');
+                return;
+            }
+            
+            const productId = productCard.getAttribute('data-product-id');
+            if (!productId) {
+                console.error('Product ID not found');
+                return;
+            }
+            
+            console.log('Attempting to toggle favorite for product:', productId);
+            
+            try {
+                const response = await fetch(`/favorite/${productId}/`, {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRFToken': getCookie('csrftoken'),
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                console.log('Favorite toggle response:', data);
+                
+                // Hemen görsel olarak değiştir
+                if (data.status === 'added') {
+                    icon.classList.add('favorited');
+                    icon.querySelector('i').classList.add('fa-solid');
+                    icon.querySelector('i').classList.remove('fa-regular');
+                    
+                    Toastify({
+                        text: data.message,
+                        duration: 3000,
+                        close: true,
+                        gravity: "top",
+                        position: "right",
+                        style: {
+                            background: "#28a745"
+                        }
+                    }).showToast();
+                } else if (data.status === 'removed') {
+                    icon.classList.remove('favorited');
+                    icon.querySelector('i').classList.remove('fa-solid');
+                    icon.querySelector('i').classList.add('fa-regular');
+                    
+                    Toastify({
+                        text: data.message,
+                        duration: 3000,
+                        close: true,
+                        gravity: "top",
+                        position: "right",
+                        style: {
+                            background: "#17a2b8"
+                        }
+                    }).showToast();
+                }
+            } catch (error) {
+                console.error('Favoriye ekleme hatası:', error);
+                Toastify({
+                    text: 'Bir hata oluştu: ' + error.message,
+                    duration: 3000,
+                    close: true,
+                    gravity: "top",
+                    position: "right",
+                    style: {
+                        background: "#dc3545"
+                    }
+                }).showToast();
+            }
+        });
+    });
+    
+    // CSRF token almak için yardımcı fonksiyon
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i <cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+});
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    <script src="static\js\search.js"></script>
+    <!-- Diğer script'lerden sonra ekleyin -->
+<script src="{% static 'js/profile.js' %}"></script>
+</body>
+</html>

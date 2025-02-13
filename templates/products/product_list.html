@@ -1,0 +1,464 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Ürünler - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4 align-items-center">
+        <div class="col-md-6">
+            <h2 class="page-title">Ürünler</h2>
+        </div>
+        <div class="col-md-6 text-end">
+            <form method="get" id="sort-filter" class="d-flex justify-content-end align-items-center">
+                {% if current_category and current_category != 'all' %}
+                    <input type="hidden" name="category" value="{{ current_category }}">
+                {% endif %}
+                
+                <label class="me-2 text-muted" style="font-size: 0.9rem;">Sırala:</label>
+                <select name="sort" class="form-select form-select-sm w-auto" onchange="this.form.submit()">
+                    <option value="newest" {% if current_sort == 'newest' %}selected{% endif %}>
+                        En Yeni
+                    </option>
+                    <option value="price_asc" {% if current_sort == 'price_asc' %}selected{% endif %}>
+                        Fiyat Artan
+                    </option>
+                    <option value="price_desc" {% if current_sort == 'price_desc' %}selected{% endif %}>
+                        Fiyat Azalan
+                    </option>
+                </select>
+            </form>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Sol Filtre Bölümü -->
+        <div class="col-lg-3">
+            <div class="filter-sidebar">
+                <div class="filter-section">
+                    <h5 class="filter-title">Kategoriler</h5>
+                    
+                    <div class="category-list">
+                        <a href="?category=all" 
+                           class="category-item {% if not current_category or current_category == 'all' %}active{% endif %}">
+                            <div class="category-item-content">
+                                <span class="category-icon">
+                                    <i class="fas fa-border-all"></i>
+                                </span>
+                                <span class="category-name">Tüm Ürünler</span>
+                                <span class="category-count">{{ products.paginator.count }}</span>
+                            </div>
+                        </a>
+
+                        {% for category in categories %}
+                        <a href="?category={{ category.slug }}" 
+                           class="category-item {% if current_category == category.slug %}active{% endif %}"
+                           data-category="{{ category.slug }}">
+                            <div class="category-item-content">
+                                <span class="category-icon">
+                                    <i class="fas fa-{{ category.icon|default:'folder' }}"></i>
+                                </span>
+                                <span class="category-name">{{ category.name }}</span>
+                                <span class="category-count">{{ category.products.count }}</span>
+                            </div>
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Sağ Ürünler Bölümü -->
+        <div class="col-lg-9">
+            <div class="row row-cols-2 row-cols-md-3 g-4">
+                {% for product in products %}
+                <div class="col product-item">
+                    <div class="product-card" data-product-id="{{ product.id }}">
+                        <div class="product-image">
+                            {% if product.images.exists %}
+                            <img src="{{ product.images.first.get_image }}" alt="{{ product.name }}">
+                            {% endif %}
+                            <div class="product-favorite" 
+                                 role="button" 
+                                 title="Favorilere ekle" 
+                                 data-requires-auth="{% if not user.is_authenticated %}true{% else %}false{% endif %}"
+                                 {% if not user.is_authenticated %}onclick="window.location.href='{% url 'accounts:login' %}'"{% endif %}>
+                                <i class="{% if user.is_authenticated and user in product.favorited_users %}fas{% else %}far{% endif %} fa-heart"></i>
+                            </div>
+                        </div>
+                        <div class="product-info">
+                            <div class="product-category">{{ product.category.name }}</div>
+                            <h2 class="product-title">{{ product.name }}</h2>
+                            <div class="product-price">{{ product.price }} TL</div>
+                            <div class="product-action">
+                                <a href="{% url 'products:product_detail' product.slug %}" 
+                                   class="btn btn-primary btn-product">
+                                    <i class="fas fa-eye"></i>
+                                    <span>İncele</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-12">
+                    <div class="text-center py-5">
+                        <i class="fas fa-box-open fa-3x mb-3 text-muted"></i>
+                        <p class="text-muted">Ürün bulunamadı.</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            {% if products.has_other_pages %}
+            <nav class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if products.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ products.previous_page_number }}{% if current_category and current_category != 'all' %}&category={{ current_category }}{% endif %}{% if current_sort %}&sort={{ current_sort }}{% endif %}">
+                            <i class="fas fa-chevron-left"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                    
+                    {% for num in products.paginator.page_range %}
+                    <li class="page-item {% if products.number == num %}active{% endif %}">
+                        <a class="page-link" href="?page={{ num }}{% if current_category and current_category != 'all' %}&category={{ current_category }}{% endif %}{% if current_sort %}&sort={{ current_sort }}{% endif %}">
+                            {{ num }}
+                        </a>
+                    </li>
+                    {% endfor %}
+                    
+                    {% if products.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ products.next_page_number }}{% if current_category and current_category != 'all' %}&category={{ current_category }}{% endif %}{% if current_sort %}&sort={{ current_sort }}{% endif %}">
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+
+            {% if products.paginator.count > 6 %}
+                <div class="text-center mt-4">
+                    <a href="{% url 'products:all_products' %}" class="btn btn-view-all">
+                        <span class="btn-view-all-icon">
+                            <i class="fas fa-th-large me-2"></i>
+                        </span>
+                        <span class="btn-view-all-text">
+                            Tüm Ürünleri Gör ({{ products.paginator.count }})
+                        </span>
+                        <span class="btn-view-all-arrow">
+                            <i class="fas fa-arrow-right ms-2"></i>
+                        </span>
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Submenu'den hemen sonra -->
+<div class="why-us-section">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-3">
+                <div class="feature-box">
+                    <i class="fas fa-truck"></i>
+                    <h4>Hızlı Teslimat</h4>
+                    <p>24 saat içinde kargoya teslim</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="feature-box">
+                    <i class="fas fa-undo"></i>
+                    <h4>Kolay İade</h4>
+                    <p>14 gün içinde ücretsiz iade</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="feature-box">
+                    <i class="fas fa-headset"></i>
+                    <h4>7/24 Destek</h4>
+                    <p>Her zaman yanınızdayız</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="feature-box">
+                    <i class="fas fa-shield-alt"></i>
+                    <h4>Güvenli Ödeme</h4>
+                    <p>%100 güvenli alışveriş</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Sayfalama kısmından sonra -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const favoriteButtons = document.querySelectorAll('.product-favorite');
+    
+    favoriteButtons.forEach(favoriteBtn => {
+        if (favoriteBtn.dataset.requiresAuth === 'true') {
+            return;  // Giriş yapmamış kullanıcılar için işlemi atla
+        }
+
+        favoriteBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const productCard = this.closest('.product-card');
+            const productId = productCard.dataset.productId;
+            const productName = productCard.querySelector('.product-title').textContent;
+            const icon = this.querySelector('i');
+            
+            fetch(`/favorite/${productId}/`, {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                },
+            })
+            .then(response => {
+                console.log('Response status:', response.status);
+                if (!response.ok) {
+                    return response.text().then(text => {
+                        console.error('Error response:', text);
+                        throw new Error(text || 'Network response was not ok');
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Success data:', data);
+                if (data.status === 'added') {
+                    icon.classList.remove('far');
+                    icon.classList.add('fas');
+                    icon.style.color = '#ef4444';
+                    
+                    Toastify({
+                        text: `${productName} favorilere eklendi`,
+                        duration: 3000,
+                        gravity: "bottom",
+                        position: "right",
+                        style: {
+                            background: "#10B981",
+                        },
+                    }).showToast();
+                    
+                } else if (data.status === 'removed') {
+                    icon.classList.remove('fas');
+                    icon.classList.add('far');
+                    icon.style.color = '';
+                    
+                    Toastify({
+                        text: `${productName} favorilerden kaldırıldı`,
+                        duration: 3000,
+                        gravity: "bottom",
+                        position: "right",
+                        style: {
+                            background: "#EF4444",
+                        },
+                    }).showToast();
+                }
+            })
+            .catch(error => {
+                console.error('Detailed error:', error);
+                
+                Toastify({
+                    text: error.message || "Bir hata oluştu!",
+                    duration: 3000,
+                    gravity: "bottom",
+                    position: "right",
+                    style: {
+                        background: "#EF4444",
+                    },
+                }).showToast();
+            });
+        });
+    });
+});
+</script>
+
+<style>
+.page-title {
+    font-weight: 600;
+    color: var(--text-dark);
+    opacity: 0.8;
+}
+
+.filter-sidebar {
+    background: white;
+    border-radius: 12px;
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--border-color);
+    overflow: hidden;
+}
+
+.filter-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-dark);
+    opacity: 0.7;
+    padding: 1rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.category-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.625rem;
+}
+
+.category-item {
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    padding: 0.875rem 1.125rem;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    border: 1px solid transparent;
+    position: relative;
+}
+
+.category-item-content {
+    display: flex;
+    align-items: center;
+    flex-grow: 1;
+}
+
+.category-icon {
+    width: 28px;
+    margin-right: 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #94a3b8;
+    transition: all 0.3s ease;
+}
+
+.category-name {
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: #1e293b;
+    transition: all 0.3s ease;
+    letter-spacing: -0.5px;
+}
+
+.category-count {
+    background-color: #f1f5f9;
+    color: #64748b;
+    border-radius: 16px;
+    padding: 3px 9px;
+    font-size: 0.7rem;
+    margin-left: auto;
+    transition: all 0.3s ease;
+    font-weight: 500;
+}
+
+.category-item:hover,
+.category-item.active {
+    background-color: white;
+    border-color: #edf2f7;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.06);
+    transform: translateY(-2px);
+}
+
+.category-item:hover .category-icon,
+.category-item.active .category-icon {
+    color: var(--primary-color);
+    transform: scale(1.05);
+}
+
+.category-item:hover .category-name,
+.category-item.active .category-name {
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+.category-item:hover .category-count,
+.category-item.active .category-count {
+    background-color: rgba(14, 165, 233, 0.1);
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+.category-item.active::before {
+    content: '';
+    position: absolute;
+    left: -1px;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background-color: var(--primary-color);
+    border-top-left-radius: 12px;
+    border-bottom-left-radius: 12px;
+}
+
+.btn-view-all {
+    background-color: #0ea5e9;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+    box-shadow: 0 3px 5px rgba(0, 123, 255, 0.15);
+    display: inline-flex;
+    align-items: center;
+    text-decoration: none;
+}
+
+.btn-view-all:hover {
+    background-color: #3b82f6;
+    border-color: #0062cc;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0, 123, 255, 0.2);
+    color: rgba(255, 255, 255, 0.95);
+}
+
+.btn-view-all-icon {
+    margin-right: 10px;
+    opacity: 0.9;
+    display: flex;
+    align-items: center;
+}
+
+.btn-view-all:hover .btn-view-all-icon {
+    opacity: 1;
+}
+
+.btn-view-all-text {
+    font-size: 0.85rem;
+}
+
+.btn-view-all-arrow {
+    opacity: 0;
+    transform: translateX(-10px);
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+}
+
+.btn-view-all:hover .btn-view-all-arrow {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+/* Responsive Adjustments */
+@media (max-width: 576px) {
+    .btn-view-all {
+        padding: 8px 16px;
+        font-size: 0.8rem;
+    }
+    
+    .btn-view-all-icon {
+        margin-right: 6px;
+    }
+}
+</style>
+{% endblock %}

@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Adresi Düzenle{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h3>Adresi Düzenle</h3>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label>Adres Başlığı</label>
+                                {{ form.title }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label>Ad Soyad</label>
+                                {{ form.full_name }}
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label>Telefon Numarası</label>
+                            {{ form.phone }}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label>Şehir</label>
+                            {{ form.city }}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label>İlçe</label>
+                            {{ form.district }}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label>Tam Adres</label>
+                            {{ form.full_address }}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <div class="form-check">
+                                {{ form.is_default }}
+                                <label class="form-check-label">
+                                    Varsayılan Adres
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>Güncelle
+                            </button>
+                            <a href="{% url 'accounts:profile' %}" class="btn btn-secondary ms-2">
+                                İptal
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

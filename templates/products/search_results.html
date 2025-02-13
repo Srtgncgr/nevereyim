@@ -1,0 +1,288 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Arama Sonuçları - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    {% if search_query %}
+        {% if products %}
+            <div class="alert alert-info">
+                "{{ search_query }}" için {{ products.count }} sonuç bulundu.
+            </div>
+
+            <div class="row">
+                <!-- Sol Filtreler -->
+                <div class="col-lg-3">
+                    <div class="sidebar-categories">
+                        <div class="sidebar-categories-title">
+                            <i class="fas fa-th-large"></i>
+                            <span>Kategoriler</span>
+                        </div>
+                        <div class="category-menu">
+                            <a href="#" class="category-link active" data-category="all">
+                                <i class="fas fa-border-all"></i>
+                                <span>Tüm Ürünler</span>
+                                <span class="category-count">{{ products.paginator.count }}</span>
+                            </a>
+                            {% for category in categories %}
+                            <a href="#" class="category-link" data-category="{{ category.slug }}">
+                                <i class="fas fa-folder"></i>
+                                <span>{{ category.name }}</span>
+                                <span class="category-count">{{ category.products.count }}</span>
+                            </a>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- Yeni öne çıkan kartlar -->
+                    <div class="featured-cards">
+                        <!-- En Çok Sepete Eklenenler -->
+                        <div class="promo-card">
+                            <div class="promo-icon">
+                                <i class="fas fa-fire"></i>
+                            </div>
+                            <div class="promo-info">
+                                <h3>En Çok Satanlar</h3>
+                                <div class="promo-tag">
+                                    <i class="fas fa-chart-line"></i>
+                                    2.5K+ kişi satın aldı
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Öne Çıkanlar -->
+                        <div class="promo-card hot">
+                            <div class="promo-icon">
+                                <i class="fas fa-star"></i>
+                            </div>
+                            <div class="promo-info">
+                                <h3>Öne Çıkanlar</h3>
+                                <div class="promo-tag">
+                                    <i class="fas fa-tags"></i>
+                                    İndirimli Ürünler
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ürünler -->
+                <div class="col-lg-9">
+                    <div class="row row-cols-2 row-cols-md-3 g-4">
+                        {% for product in products %}
+                        <div class="col product-item" data-category="{{ product.category.slug }}">
+                            <div class="product-card" data-product-id="{{ product.id }}">
+                                {% if product.images.first %}
+                                    <div class="product-image">
+                                        <img src="{{ product.images.first.get_image }}" alt="{{ product.name }}">
+                                        <div class="product-favorite">
+                                            <i class="far fa-heart"></i>
+                                        </div>
+                                    </div>
+                                {% else %}
+                                    <div class="product-image">
+                                        <img src="{% static 'images/default-product.png' %}" alt="{{ product.name }}">
+                                        <div class="product-favorite">
+                                            <i class="far fa-heart"></i>
+                                        </div>
+                                    </div>
+                                {% endif %}
+                                
+                                <div class="product-info">
+                                    <p class="product-category">{{ product.category.name }}</p>
+                                    <h5 class="product-title">{{ product.name }}</h5>
+                                    <div class="product-price">{{ product.price }} TL</div>
+                                    <div class="product-action">
+                                        <button class="btn-product">
+                                            <i class="fas fa-shopping-cart"></i>
+                                            Sepete Ekle
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="col-12">
+                            <div class="no-results-container text-center py-5">
+                                <div class="no-results-icon mb-4">
+                                    <i class="fas fa-search-minus" style="font-size: 4rem; color: #94a3b8;"></i>
+                                </div>
+                                <h3 class="mb-3">Üzgünüz, "{{ search_query }}" için sonuç bulunamadı</h3>
+                                <p class="text-muted mb-4">
+                                    Aradığınız ürünü bulamadık. Lütfen farklı bir anahtar kelime deneyin veya ürün kategorilerini kontrol edin.
+                                </p>
+                                <div class="no-results-suggestions">
+                                    <h4 class="mb-3">Öneriler:</h4>
+                                    <ul class="list-unstyled">
+                                        <li class="mb-2">
+                                            <i class="fas fa-check text-primary me-2"></i>
+                                            Yazım hatası olup olmadığını kontrol edin
+                                        </li>
+                                        <li class="mb-2">
+                                            <i class="fas fa-check text-primary me-2"></i>
+                                            Daha genel bir arama terimi kullanın
+                                        </li>
+                                        <li class="mb-2">
+                                            <i class="fas fa-check text-primary me-2"></i>
+                                            Kategorilerden birini seçin
+                                        </li>
+                                    </ul>
+                                </div>
+                                <div class="mt-4">
+                                    <a href="{% url 'products:product_list' %}" class="btn btn-outline-primary">
+                                        <i class="fas fa-home me-2"></i>
+                                        Tüm Ürünlere Dön
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Sayfalama -->
+                    {% if is_paginated %}
+                    <nav aria-label="Sayfa navigasyonu" class="mt-4">
+                        <ul class="pagination justify-content-center">
+                            {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}">
+                                    <i class="fas fa-chevron-left"></i>
+                                </a>
+                            </li>
+                            {% endif %}
+
+                            {% for num in page_obj.paginator.page_range %}
+                                {% if page_obj.number == num %}
+                                    <li class="page-item active">
+                                        <span class="page-link">{{ num }}</span>
+                                    </li>
+                                {% else %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ num }}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}">{{ num }}</a>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+
+                            {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}">
+                                    <i class="fas fa-chevron-right"></i>
+                                </a>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                    {% endif %}
+                </div>
+            </div>
+        {% else %}
+            <div class="no-results-container text-center py-5">
+                <div class="no-results-icon mb-4">
+                    <i class="fas fa-search-minus" style="font-size: 4rem; color: #94a3b8;"></i>
+                </div>
+                <h3 class="mb-3">"{{ search_query }}" için sonuç bulunamadı</h3>
+                <p class="text-muted mb-4">
+                    Aradığınız ürünü bulamadık. Lütfen farklı bir anahtar kelime deneyin.
+                </p>
+                <div class="mt-4">
+                    <a href="{% url 'products:product_list' %}" class="btn btn-outline-primary">
+                        <i class="fas fa-home me-2"></i>
+                        Tüm Ürünlere Dön
+                    </a>
+                </div>
+            </div>
+        {% endif %}
+    {% else %}
+        <div class="alert alert-warning">
+            Lütfen bir arama terimi girin.
+        </div>
+    {% endif %}
+</div>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const favoriteButtons = document.querySelectorAll('.product-favorite');
+        
+        favoriteButtons.forEach(favoriteBtn => {
+            if (favoriteBtn.dataset.requiresAuth === 'true') {
+                return;  // Giriş yapmamış kullanıcılar için işlemi atla
+            }
+    
+            favoriteBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const productCard = this.closest('.product-card');
+                const productId = productCard.dataset.productId;
+                const productName = productCard.querySelector('.product-title').textContent;
+                const icon = this.querySelector('i');
+                
+                fetch(`/favorite/${productId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                    },
+                })
+                .then(response => {
+                    console.log('Response status:', response.status);
+                    if (!response.ok) {
+                        return response.text().then(text => {
+                            console.error('Error response:', text);
+                            throw new Error(text || 'Network response was not ok');
+                        });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Success data:', data);
+                    if (data.status === 'added') {
+                        icon.classList.remove('far');
+                        icon.classList.add('fas');
+                        icon.style.color = '#ef4444';
+                        
+                        Toastify({
+                            text: `${productName} favorilere eklendi`,
+                            duration: 3000,
+                            gravity: "bottom",
+                            position: "right",
+                            style: {
+                                background: "#10B981",
+                            },
+                        }).showToast();
+                        
+                    } else if (data.status === 'removed') {
+                        icon.classList.remove('fas');
+                        icon.classList.add('far');
+                        icon.style.color = '';
+                        
+                        Toastify({
+                            text: `${productName} favorilerden kaldırıldı`,
+                            duration: 3000,
+                            gravity: "bottom",
+                            position: "right",
+                            style: {
+                                background: "#EF4444",
+                            },
+                        }).showToast();
+                    }
+                })
+                .catch(error => {
+                    console.error('Detailed error:', error);
+                    
+                    Toastify({
+                        text: error.message || "Bir hata oluştu!",
+                        duration: 3000,
+                        gravity: "bottom",
+                        position: "right",
+                        style: {
+                            background: "#EF4444",
+                        },
+                    }).showToast();
+                });
+            });
+        });
+    });
+    </script>
+{% endblock %}

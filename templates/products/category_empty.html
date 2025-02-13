@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+    {% if category_not_found %}
+        Kategori Bulunamadı
+    {% elif category and no_products %}
+        {{ category.name }} - Ürün Bulunamadı
+    {% else %}
+        Kategoriler
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container empty-category-container">
+    <div class="row justify-content-center">
+        <div class="col-md-8 text-center">
+            <div class="empty-category-icon">
+                <i class="fas fa-box-open fa-5x text-muted mb-4"></i>
+            </div>
+            
+            {% if category_not_found %}
+                <h2 class="mb-3">Aradığınız Kategori Bulunamadı</h2>
+                <p class="lead text-muted mb-4">
+                    Üzgünüz, böyle bir kategori sistemimizde mevcut değil.
+                </p>
+            {% elif category and no_products %}
+                <h2 class="mb-3">{{ category.name }} Kategorisinde Ürün Bulunmuyor</h2>
+                <p class="lead text-muted mb-4">
+                    Şu anda bu kategoride henüz ürün eklenmemiş. 
+                    Yakında yeni ürünler eklenecektir.
+                </p>
+            {% else %}
+                <h2 class="mb-3">Kategoriler Bulunamadı</h2>
+                <p class="lead text-muted mb-4">
+                    Sistemde henüz kategori bulunmamaktadır.
+                </p>
+            {% endif %}
+            
+            <div class="actions mt-4">
+                <a href="{% url 'products:product_list' %}" class="btn btn-primary">
+                    <i class="fas fa-home me-2"></i>Tüm Ürünlere Dön
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.empty-category-container {
+    padding: 4rem 0;
+    background-color: #f8f9fa;
+}
+
+.empty-category-icon i {
+    color: #6c757d;
+    opacity: 0.6;
+    margin-bottom: 2rem;
+}
+</style>
+{% endblock %}

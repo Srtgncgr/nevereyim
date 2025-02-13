@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+{% load custom_filters %}
+
+{% block title %}Sepetim - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="cart-page">
+    <div class="row justify-content-center">
+        <!-- Sol taraf - Sepet ürünleri -->
+        <div class="col-lg-8">
+            <div class="cart-items">
+                <h2 class="cart-title">Alışveriş Sepetim</h2>
+                
+                {% if cart_items %}
+                    {% for item in cart_items %}
+                    <div class="cart-item">
+                        <div class="cart-item-image">
+                            {% if item.product.images.exists %}
+                                <img src="{{ item.product.images.first.get_image }}" alt="{{ item.product.name }}" class="img-fluid">
+                            {% else %}
+                                <div class="placeholder-image">
+                                    <i class="fas fa-image"></i>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="cart-item-details">
+                            <h3 class="cart-item-title">{{ item.product.name }}</h3>
+                            <p class="cart-item-price">{{ item.price }} TL</p>
+                        </div>
+                        <div class="cart-item-quantity">
+                            <form method="post" action="{% url 'orders:cart_update' item.product.id %}" class="quantity-form">
+                                {% csrf_token %}
+                                <button type="button" class="quantity-btn minus">-</button>
+                                <input type="number" name="quantity" value="{{ item.quantity }}" min="1" max="10" class="quantity-input">
+                                <button type="button" class="quantity-btn plus">+</button>
+                            </form>
+                        </div>
+                        <div class="cart-item-total">
+                            <p class="total-price">{{ item.total_price }} TL</p>
+                        </div>
+                        <div class="cart-item-remove">
+                            <a href="{% url 'orders:cart_remove' item.product.id %}" class="remove-btn">
+                                <i class="fas fa-trash"></i>
+                            </a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-cart">
+                        <div class="empty-cart-icon">
+                            <i class="fas fa-shopping-cart"></i>
+                        </div>
+                        <h3 class="empty-cart-title">Sepetiniz Boş</h3>
+                        <p class="empty-cart-text">Sepetinizde ürün bulunmamaktadır.</p>
+                        <a href="{% url 'products:product_list' %}" class="btn btn-primary btn-lg">
+                            <i class="fas fa-shopping-bag me-2"></i>
+                            Alışverişe Başla
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        {% if cart_items %}
+        <div class="col-lg-4">
+            <div class="cart-summary">
+                <h3 class="summary-title">Sipariş Özeti</h3>
+                <div class="summary-item">
+                    <span>Ara Toplam</span>
+                    <span>{{ cart_total }} TL</span>
+                </div>
+                <div class="summary-item">
+                    <span>Kargo</span>
+                    <span>Ücretsiz</span>
+                </div>
+                <div class="summary-total">
+                    <span>Toplam</span>
+                    <span>{{ cart_total }} TL</span>
+                </div>
+                <a href="{% url 'orders:order_create' %}" class="btn btn-primary btn-block">
+                    Alışverişi Tamamla
+                </a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+document.querySelectorAll('.quantity-form').forEach(form => {
+    const minusBtn = form.querySelector('.minus');
+    const plusBtn = form.querySelector('.plus');
+    const input = form.querySelector('.quantity-input');
+
+    minusBtn.addEventListener('click', () => {
+        let value = parseInt(input.value);
+        if (value > 1) {
+            input.value = value - 1;
+            form.submit();
+        }
+    });
+
+    plusBtn.addEventListener('click', () => {
+        let value = parseInt(input.value);
+        if (value < 10) {
+            input.value = value + 1;
+            form.submit();
+        }
+    });
+
+    input.addEventListener('change', () => {
+        form.submit();
+    });
+});
+</script>
+{% endblock %} 
