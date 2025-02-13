@@ -98,14 +98,11 @@ import dj_database_url
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'nevereyim_db',  # Veritabanı adınız
-        'USER': 'postgres',  # Kullanıcı adı
-        'PASSWORD': 'serosero',  # Veritabanı şifresi
-        'HOST': 'localhost',  # Veritabanı sunucusu (yerel bağlantı)
-        'PORT': '5432',  # PostgreSQL'in varsayılan portu
+        'ENGINE': 'django.db.backends.sqlite3',  # SQLite kullanıyoruz
+        'NAME': BASE_DIR / "db.sqlite3",  # Veritabanı dosyası, proje dizininde yer alacak
     }
 }
+
 
 
 
