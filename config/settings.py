@@ -93,16 +93,11 @@ WSGI_APPLICATION = 'config.wsgi.application'
 
 
 
+import os
+import dj_database_url
+
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'railway',
-        'USER': 'postgres',
-        'PASSWORD': os.getenv('DB_PASSWORD'),
-        'HOST': 'postgres.railway.internal',
-        'PORT': '5432',
-    }
-    
+    'default': dj_database_url.config(default=os.getenv('DATABASE_URL'))
 }
 
 
