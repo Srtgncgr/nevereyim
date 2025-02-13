@@ -97,8 +97,16 @@ import os
 import dj_database_url
 
 DATABASES = {
-    'default': dj_database_url.config(default=os.getenv('DATABASE_URL'))
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'nevereyim_db',  # Veritabanı adınız
+        'USER': 'postgres',  # Kullanıcı adı
+        'PASSWORD': 'serosero',  # Veritabanı şifresi
+        'HOST': 'localhost',  # Veritabanı sunucusu (yerel bağlantı)
+        'PORT': '5432',  # PostgreSQL'in varsayılan portu
+    }
 }
+
 
 
 
