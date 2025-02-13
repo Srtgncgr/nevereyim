@@ -96,12 +96,12 @@ WSGI_APPLICATION = 'config.wsgi.application'
 import os
 import dj_database_url
 
+import dj_database_url
+
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',  # SQLite kullanıyoruz
-        'NAME': BASE_DIR / "db.sqlite3",  # Veritabanı dosyası, proje dizininde yer alacak
-    }
+    'default': dj_database_url.config(default=os.getenv('DATABASE_URL'))
 }
+
 
 
 
