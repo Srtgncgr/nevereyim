@@ -32,7 +32,10 @@ SECRET_KEY = 'django-insecure-^v02zo!(+iv%3#!($^r_#t@^55#i+$c0t$^@46atjqc(pi4bw9
 DEBUG = True
 
 ALLOWED_HOSTS = ['nevereyim.shop', 'https://nevereyim.shop','nevereyim-production.up.railway.app','www.nevereyim.shop'] 
-CSRF_TRUSTED_ORIGINS = ['https://nevereyim.shop']
+CSRF_TRUSTED_ORIGINS = [
+    'https://www.nevereyim.shop',
+    'https://your-other-allowed-origin.com',  # Diğer güvenilir kaynaklar
+]
 
 
 # Application definition
